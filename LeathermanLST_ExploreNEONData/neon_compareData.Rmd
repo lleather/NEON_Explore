@@ -1,0 +1,129 @@
+---
+title: "EXPLORE NEON Workshop"
+output: html_notebook
+date: 11/09/18
+---
+
+Task: Compare outputs of NEON canopy height model to actual data.
+
+```{r setup}
+
+options(stringsAsFactors = F)
+
+#make default plot white on white background
+th <- theme_bw()+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+theme_set(th)
+
+#load libraries
+library(neonUtilities)
+library(geoNEON)
+library(raster)
+library(ggplot2)
+library(tidyverse) #this is important for data processing!
+
+proj_dir <- "/Users/lilaleatherman/Documents/current projects/github/NEON_Explore/LeathermanLST_ExploreNEONData"
+
+data_dir <- "/Users/lilaleatherman/Documents/current projects/github/neon_data_workshop/data"
+
+```
+
+```{r load veg structure data}
+
+vegmap <- read.delim(paste0(data_dir, "/filesToStack10098/stackedFiles/vst_mappingandtagging.csv"), sep = ",")
+
+vegind <- read.delim(paste0(data_dir, "/filesToStack10098/stackedFiles/vst_apparentindividual.csv"), sep = ",")
+
+```
+
+geoNEON provides functionality for spatial data around NEON data. 
+For example, mapping and tagging data locations are relative to a named point, but don't have absolute location data themselves. geoNEON allows you to calculate the locations.
+
+based on namedLocation, pointID, stemDistance, stemAzimuth - calculates the location by querying API
+
+```{r look at stem diameter in plots}
+
+#get lat / long from NEON
+vegmap <- geoNEON::def.calc.geo.os(vegmap, "vst_mappingandtagging")
+
+#join locations with stem diameter
+veg <- merge(vegmap, vegind, by = c("individualID", "namedLocation", "domainID", "siteID", "plotID"))
+
+#plot stem diameters
+veg %>%
+  filter(plotID == "WREF_085") %>%                    #looking at only one plot
+  ggplot(aes(x = adjEasting, y = adjNorthing)) +
+  geom_point(aes(size = stemDiameter/100), shape = 1)
+
+#plot stem diameters
+veg %>%
+  filter(plotID == "WREF_085") %>%                    #looking at only one plot
+  ggplot(aes(x = height)) +
+  geom_bar() + 
+  labs(title = "histogram of tree heights")
+```
+
+```{r download remote sensing data}
+
+#download AOP data
+byTileAOP(dpID = "DP3.30015.001", site = "WREF", year = "2017", # canopy height model
+          easting = 580000, northing = 5075000, savepath = data_dir)  #here we're just using one value for E+N, but you can use a vector for E+N as well
+
+```
+
+```{r look at AOP data}
+
+#load: canopy height model
+chm <- raster(paste0(data_dir, "/DP3.30015.001/2017/FullSite/D16/2017_WREF_1/L3/DiscreteLidar/CanopyHeightModelGtif/NEON_D16_WREF_DP3_580000_5075000_CHM.tif"))
+
+#basic plot
+plot(chm, col = topo.colors(6))
+
+#plot using ggplot
+library(viridis)
+
+#write function to convert raster to ggplot-friendly format
+raster_to_pts_gg <- function(raster) {
+  spdf <- as(raster, "SpatialPixelsDataFrame")
+  df <- as.data.frame(spdf)
+  colnames(df) <- c("value", "x", "y")
+  df
+}
+
+chm_gg <- raster_to_pts_gg(chm)
+
+ggplot() + 
+  geom_raster(data = chm_gg, aes(x = x, y = y, fill = value)) + 
+  scale_fill_viridis() + 
+  #remove default plotting background
+  theme_bw() + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+
+```
+
+```{r}
+## extract values of CHM to points in veg data frame
+veg_sub <- veg %>%
+  filter(!is.na(adjEasting) & !is.na(adjNorthing)) 
+
+veg_xy <- veg_sub %>%
+  select(adjEasting, adjNorthing)
+
+#convert veg points to spatial points data frame
+coordinates(veg_xy) <- ~adjEasting + adjNorthing
+veg_sp <- SpatialPointsDataFrame(coords = veg_xy, data = veg_sub, proj4string = crs(chm))
+
+#extract the values from the canopy height model to the points
+model_height <- raster::extract(chm, veg_sp)
+
+#turn extracted points into df to bind
+model_height <- data.frame(model_height)
+
+#combine model vals back with original df
+veg_full <- bind_cols(veg_sub, model_height)
+
+#do some cool stats!
+
+
+
+```
+
+

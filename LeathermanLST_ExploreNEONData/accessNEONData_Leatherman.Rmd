@@ -123,6 +123,7 @@ veg %>%
   geom_point(aes(size = stemDiameter/100), shape = 1)
 
 ```
+
 ```{r look at AOP data}
 
 #load: canopy height model
@@ -157,3 +158,5 @@ Additional notes:
 access here: http://data.neonscience.org/documents/-/document_library_display/JEygRkSpUBoq/view/2237401?_110_INSTANCE_JEygRkSpUBoq_redirect=http%3A%2F%2Fdata.neonscience.org%2Fdocuments%3Fp_p_id%3D110_INSTANCE_JEygRkSpUBoq%26p_p_lifecycle%3D0%26p_p_state%3Dnormal%26p_p_mode%3Dview%26p_p_col_id%3Dcolumn-1%26p_p_col_count%3D1 
 
 example file: http://data.neonscience.org/documents/10179/2237401/NEON_vegStructure_userGuide_vA/b390b73d-b259-46d8-9522-58fd72f12f8e?version=1.1 
+
+
