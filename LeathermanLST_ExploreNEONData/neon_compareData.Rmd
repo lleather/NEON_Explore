@@ -6,7 +6,7 @@ date: 11/09/18
 
 Task: Compare outputs of NEON canopy height model to actual data.
 
-```{r setup}
+```{r setup, message = FALSE}
 
 options(stringsAsFactors = F)
 
@@ -64,11 +64,11 @@ veg %>%
   labs(title = "histogram of tree heights")
 ```
 
-```{r download remote sensing data}
+```{r download remote sensing data, message = FALSE}
 
 #download AOP data
 byTileAOP(dpID = "DP3.30015.001", site = "WREF", year = "2017", # canopy height model
-          easting = 580000, northing = 5075000, savepath = data_dir)  #here we're just using one value for E+N, but you can use a vector for E+N as well
+          easting = 580000, northing = 5075000, savepath = data_dir, check.size = F)  #here we're just using one value for E+N, but you can use a vector for E+N as well
 
 ```
 
