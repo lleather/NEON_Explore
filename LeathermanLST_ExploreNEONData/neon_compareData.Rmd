@@ -1,6 +1,6 @@
 ---
 title: "EXPLORE NEON Workshop"
-output: html_notebook
+output: md_document
 date: 11/09/18
 ---
 
@@ -10,10 +10,6 @@ Task: Compare outputs of NEON canopy height model to actual data.
 
 options(stringsAsFactors = F)
 
-#make default plot white on white background
-th <- theme_bw()+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
-theme_set(th)
-
 #load libraries
 library(neonUtilities)
 library(geoNEON)
@@ -21,9 +17,15 @@ library(raster)
 library(ggplot2)
 library(tidyverse) #this is important for data processing!
 
+#make default plot white on white background
+th <- theme_bw()+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+theme_set(th)
+
+
 proj_dir <- "/Users/lilaleatherman/Documents/current projects/github/NEON_Explore/LeathermanLST_ExploreNEONData"
 
 data_dir <- "/Users/lilaleatherman/Documents/current projects/github/neon_data_workshop/data"
+
 
 ```
 
