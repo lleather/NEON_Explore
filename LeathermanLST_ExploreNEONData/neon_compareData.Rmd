@@ -101,7 +101,7 @@ ggplot() +
 
 ```
 
-```{r}
+```{r extract canopy height model points to }
 ## extract values of CHM to points in veg data frame
 veg_sub <- veg %>%
   filter(!is.na(adjEasting) & !is.na(adjNorthing)) 
@@ -120,12 +120,60 @@ model_height <- raster::extract(chm, veg_sp)
 model_height <- data.frame(model_height)
 
 #combine model vals back with original df
-veg_full <- bind_cols(veg_sub, model_height)
-
-#do some cool stats!
-
-
+veg_full <- bind_cols(veg_sub, model_height) %>%
+  mutate(height_diff = height - model_height)
 
 ```
 
+```{r inspect model heights vs canopy heights}
+
+#scatterplot
+veg_full %>%
+  ggplot(aes(x = height, y = model_height)) +
+  geom_point() +
+  geom_abline(slope = 1, intercept = 0, color = "red")
+
+```
+```{r}
+#map showing difference
+
+veg_full %>%
+  ggplot(aes(x = adjEasting, y = adjNorthing, fill = height_diff)) +
+  geom_point(shape = 21) +
+  scale_fill_gradient(low = "white", high = "red")
+
+```
+```{r}
+#3d scatterplot showing difference
+plot_ly(veg_full, x = ~adjEasting, y = ~adjNorthing, z = ~height_diff,
+        marker = list(color = ~height_diff, colorscale = "Viridis", showscale = TRUE)) %>%
+  add_markers() %>%
+  layout(scene = list(xaxis = list(title = 'Easting'),
+                     yaxis = list(title = 'Northing'),
+                     zaxis = list(title = 'Height model error')),
+         annotations = list(
+           x = 1.13,
+           y = 1.05,
+           text = 'm difference',
+           xref = 'paper',
+           yref = 'paper',
+           showarrow = FALSE
+         ))
+
+```
+
+
+```{r}
+
+library(plotly)
+
+
+# volcano is a numeric matrix that ships with R
+p <- plot_ly(z = ~volcano) %>% add_surface()
+p
+
+str(volcano)
+head(volcano)
+
+```
 
